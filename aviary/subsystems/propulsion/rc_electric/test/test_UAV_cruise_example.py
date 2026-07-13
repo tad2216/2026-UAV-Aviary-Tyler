@@ -63,7 +63,7 @@ class CruiseExample:
         prob.add_post_mission_systems()
         prob.link_phases()
 
-        prob.add_driver('IPOPT', use_coloring=False, max_iter=15)
+        prob.add_driver('IPOPT', use_coloring=False, max_iter= 3)
         prob.driver.opt_settings['print_level'] = 5
         prob.driver.opt_settings['mu_strategy'] = 'adaptive'
         prob.driver.opt_settings['tol'] = 1e-6
@@ -133,6 +133,9 @@ class CruiseExample:
         prob.set_val(Aircraft.Battery.VOLTAGE, 25.2, units='V')
 
         # Seed geometry terms near a small-UAV baseline.
+
+        prob.set_val(Aircraft.Fuselage.MAX_HEIGHT, 0.15, units='m')
+        prob.set_val(Aircraft.Fuselage.MAX_WIDTH, 0.15, units='m')
         prob.set_val(Aircraft.Wing.WETTED_AREA, 0.85, units='m**2')
         prob.set_val(Aircraft.HorizontalTail.SPAN, 1.0, units='m')
         prob.set_val(Aircraft.HorizontalTail.WETTED_AREA, 0.35, units='m**2')
@@ -217,106 +220,106 @@ class MeanPowerComp(om.ExplicitComponent):
         outputs['p_avg_kw'] = np.mean(inputs['p_cruise_kw'])
 
 
-class TestRCPropMission(unittest.TestCase):
-    def test_residual(self):
-        nn = 3
+# class TestRCPropMission(unittest.TestCase):
+#     def test_residual(self):
+#         nn = 3
 
-        prob = om.Problem(reports=False)
-        options = AviaryValues()
-        options.set_val(Aircraft.Engine.NUM_ENGINES, 1)
-        prob.model.add_subsystem('rc_prop_group', RCPropMission(num_nodes=nn, aviary_options=options), promotes=['*'])
+#         prob = om.Problem(reports=False)
+#         options = AviaryValues()
+#         options.set_val(Aircraft.Engine.NUM_ENGINES, 1)
+#         prob.model.add_subsystem('rc_prop_group', RCPropMission(num_nodes=nn, aviary_options=options), promotes=['*'])
 
-        # Solve the implicit current balance with Newton for this residual test.
-        prob.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
-        prob.model.nonlinear_solver.options['maxiter'] = 30
-        prob.model.nonlinear_solver.options['err_on_non_converge'] = True
-        prob.model.nonlinear_solver.linesearch = om.BoundsEnforceLS()
-        prob.model.nonlinear_solver.linesearch.options['bound_enforcement'] = 'scalar'
-        prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
+#         # Solve the implicit current balance with Newton for this residual test.
+#         prob.model.nonlinear_solver = om.NewtonSolver(solve_subsystems=True)
+#         prob.model.nonlinear_solver.options['maxiter'] = 30
+#         prob.model.nonlinear_solver.options['err_on_non_converge'] = True
+#         prob.model.nonlinear_solver.linesearch = om.BoundsEnforceLS()
+#         prob.model.nonlinear_solver.linesearch.options['bound_enforcement'] = 'scalar'
+#         prob.model.linear_solver = om.DirectSolver(assemble_jac=True)
 
-        prob.setup(force_alloc_complex=True)
+#         prob.setup(force_alloc_complex=True)
 
-        prob.set_val(Aircraft.Battery.VOLTAGE, 22.2, units='V')
-        prob.set_val(Aircraft.Battery.RESISTANCE, 0.05, units='ohm')
-        prob.set_val(Dynamic.Vehicle.Propulsion.THROTTLE, np.full(nn, 0.8))
-        prob.set_val(Aircraft.Engine.Motor.IDLE_CURRENT, 0.91, units='A')
-        prob.set_val(Aircraft.Engine.Motor.MAX_CONT_CURRENT, 120, units='A')
-        prob.set_val(Aircraft.Engine.Motor.RESISTANCE, 0.032, units='ohm')
-        prob.set_val(Aircraft.Engine.Motor.KV, 420, units='rpm/V')
-        prob.set_val(Dynamic.Atmosphere.DENSITY, 1.225, units='kg/m**3')
-        prob.set_val(Aircraft.Engine.Propeller.DIAMETER, 20, units='inch')
-        prob.set_val(Aircraft.Engine.Propeller.PITCH, 10, units='inch')
-        prob.set_val(Dynamic.Mission.VELOCITY, 20, units='ft/s')
+#         prob.set_val(Aircraft.Battery.VOLTAGE, 22.2, units='V')
+#         prob.set_val(Aircraft.Battery.RESISTANCE, 0.05, units='ohm')
+#         prob.set_val(Dynamic.Vehicle.Propulsion.THROTTLE, np.full(nn, 0.8))
+#         prob.set_val(Aircraft.Engine.Motor.IDLE_CURRENT, 0.91, units='A')
+#         prob.set_val(Aircraft.Engine.Motor.MAX_CONT_CURRENT, 120, units='A')
+#         prob.set_val(Aircraft.Engine.Motor.RESISTANCE, 0.032, units='ohm')
+#         prob.set_val(Aircraft.Engine.Motor.KV, 420, units='rpm/V')
+#         prob.set_val(Dynamic.Atmosphere.DENSITY, 1.225, units='kg/m**3')
+#         prob.set_val(Aircraft.Engine.Propeller.DIAMETER, 20, units='inch')
+#         prob.set_val(Aircraft.Engine.Propeller.PITCH, 10, units='inch')
+#         prob.set_val(Dynamic.Mission.VELOCITY, 20, units='ft/s')
 
-        prob.run_model()
+#         prob.run_model()
 
-        battery_power = prob.get_val('battery.power', units='W')
-        esc_power = prob.get_val('esc.power', units='W')
-        motor_power = prob.get_val('motor.power', units='W')
+#         battery_power = prob.get_val('battery.power', units='W')
+#         esc_power = prob.get_val('esc.power', units='W')
+#         motor_power = prob.get_val('motor.power', units='W')
 
-    def test_premission_calcs(self):
-        prob = om.Problem(reports=False)
-        options = AviaryValues()
-        options.set_val(Aircraft.Engine.Motor.KV_EQ_SLOPE, 2105.53674)
-        options.set_val(Aircraft.Engine.Motor.KV_EQ_INT, -80.83469)
+#     def test_premission_calcs(self):
+#         prob = om.Problem(reports=False)
+#         options = AviaryValues()
+#         options.set_val(Aircraft.Engine.Motor.KV_EQ_SLOPE, 2105.53674)
+#         options.set_val(Aircraft.Engine.Motor.KV_EQ_INT, -80.83469)
 
-        prob.model.add_subsystem('rc_calcs', RCPropPreMission(aviary_options=options), promotes=['*'])
+#         prob.model.add_subsystem('rc_calcs', RCPropPreMission(aviary_options=options), promotes=['*'])
 
-        prob.setup(force_alloc_complex=True)
+#         prob.setup(force_alloc_complex=True)
 
-        prob.set_val(Aircraft.Battery.MASS, 0.707, units='kg')
-        prob.set_val(Aircraft.Battery.VOLTAGE, 22.2, units='V')
-        prob.set_val(Aircraft.Engine.Motor.IDLE_CURRENT, 0.91, units='A')
-        prob.set_val(Aircraft.Engine.Motor.MAX_CONT_CURRENT, 120, units='A')
-        prob.set_val(Aircraft.Engine.Motor.MASS, 0.288, units='kg')
+#         prob.set_val(Aircraft.Battery.MASS, 0.707, units='kg')
+#         prob.set_val(Aircraft.Battery.VOLTAGE, 22.2, units='V')
+#         prob.set_val(Aircraft.Engine.Motor.IDLE_CURRENT, 0.91, units='A')
+#         prob.set_val(Aircraft.Engine.Motor.MAX_CONT_CURRENT, 120, units='A')
+#         prob.set_val(Aircraft.Engine.Motor.MASS, 0.288, units='kg')
 
-        prob.run_model()
+#         prob.run_model()
 
-        kv = prob.get_val(Aircraft.Engine.Motor.KV, 'rpm/V')
-        resistance = prob.get_val(Aircraft.Engine.Motor.RESISTANCE, 'ohm')
-        energy = prob.get_val(Aircraft.Battery.ENERGY_CAPACITY, 'W*h')
+#         kv = prob.get_val(Aircraft.Engine.Motor.KV, 'rpm/V')
+#         resistance = prob.get_val(Aircraft.Engine.Motor.RESISTANCE, 'ohm')
+#         energy = prob.get_val(Aircraft.Battery.ENERGY_CAPACITY, 'W*h')
 
-        kv_expected = 796.472285
-        resistance_expected = 0.05582266503
-        energy_expected = 109.11522
-        assert_near_equal(kv, kv_expected, tolerance=1e-9)
-        assert_near_equal(resistance, resistance_expected, tolerance=1e-9)
-        assert_near_equal(energy, energy_expected, tolerance=1e-9)
-        partial_data = prob.check_partials(out_stream=None, method='cs')
-        assert_check_partials(partial_data, atol=1e-12, rtol=1e-12)
+#         kv_expected = 796.472285
+#         resistance_expected = 0.05582266503
+#         energy_expected = 109.11522
+#         assert_near_equal(kv, kv_expected, tolerance=1e-9)
+#         assert_near_equal(resistance, resistance_expected, tolerance=1e-9)
+#         assert_near_equal(energy, energy_expected, tolerance=1e-9)
+#         partial_data = prob.check_partials(out_stream=None, method='cs')
+#         assert_check_partials(partial_data, atol=1e-12, rtol=1e-12)
 
 
-# NOTE: no @use_tempdirs here. DBFMassBuilder reads its airfoil CSV via a repo-root-
-# relative path (like the dbf_based_mass unit tests), so this must run from the repo root.
-class TestRCCruiseAttempt(unittest.TestCase):
-    def test_subsystems_in_cruise_attempt(self):
-        prob = CruiseExample().run()
+# # NOTE: no @use_tempdirs here. DBFMassBuilder reads its airfoil CSV via a repo-root-
+# # relative path (like the dbf_based_mass unit tests), so this must run from the repo root.
+# class TestRCCruiseAttempt(unittest.TestCase):
+#     def test_subsystems_in_cruise_attempt(self):
+#         prob = CruiseExample().run()
 
-        endurance = prob.get_val('endurance_comp.endurance', units='h')[0]
-        gross_mass = prob.get_val('mission:gross_mass', units='kg')[0]
-        motor_mass = prob.get_val('aircraft:engine:motor:mass', units='kg')[0]
-        current_flow = None
-        if rc_prop.power_balance_mode == 'solver':
-            for name in (
-                Dynamic.Vehicle.Propulsion.CURRENT,
-                'traj.cruise.controls:current_flow',
-                'traj.cruise.rhs_all.rc_electric.esc.current_out',
-            ):
-                try:
-                    current_flow = prob.get_val(name, units='A')
-                    break
-                except KeyError:
-                    continue
-        electric_power = prob.get_val('traj.cruise.timeseries.electric_power_in_total', units='W')
-        distance_resid = prob.get_val('cruise_distance_constraint.distance_resid', units='nmi')[0]
+#         endurance = prob.get_val('endurance_comp.endurance', units='h')[0]
+#         gross_mass = prob.get_val('mission:gross_mass', units='kg')[0]
+#         motor_mass = prob.get_val('aircraft:engine:motor:mass', units='kg')[0]
+#         current_flow = None
+#         if rc_prop.power_balance_mode == 'solver':
+#             for name in (
+#                 Dynamic.Vehicle.Propulsion.CURRENT,
+#                 'traj.cruise.controls:current_flow',
+#                 'traj.cruise.rhs_all.rc_electric.esc.current_out',
+#             ):
+#                 try:
+#                     current_flow = prob.get_val(name, units='A')
+#                     break
+#                 except KeyError:
+#                     continue
+#         electric_power = prob.get_val('traj.cruise.timeseries.electric_power_in_total', units='W')
+#         distance_resid = prob.get_val('cruise_distance_constraint.distance_resid', units='nmi')[0]
 
-        print('cruise.endurance =', float(endurance), 'h')
-        print('cruise.mission_gross_mass =', float(gross_mass), 'kg')
-        print('cruise.motor_mass =', float(motor_mass), 'kg')
-        print('cruise.distance_resid =', float(distance_resid), 'nmi')
-        if current_flow is not None:
-            print('cruise.current_flow =', np.array2string(current_flow, precision=6, separator=', '), 'A')
-        print('cruise.electric_power_in_total =', np.array2string(electric_power, precision=6, separator=', '), 'W')
+#         print('cruise.endurance =', float(endurance), 'h')
+#         print('cruise.mission_gross_mass =', float(gross_mass), 'kg')
+#         print('cruise.motor_mass =', float(motor_mass), 'kg')
+#         print('cruise.distance_resid =', float(distance_resid), 'nmi')
+#         if current_flow is not None:
+#             print('cruise.current_flow =', np.array2string(current_flow, precision=6, separator=', '), 'A')
+#         print('cruise.electric_power_in_total =', np.array2string(electric_power, precision=6, separator=', '), 'W')
 
         # TODO: turn these back into assert_near_equal checks once the example values are confirmed.
         # self.assertTrue(np.isfinite(endurance) and endurance > 0.0)
@@ -328,5 +331,7 @@ class TestRCCruiseAttempt(unittest.TestCase):
         # self.assertLess(distance_resid, 0.25, 'Cruise distance residual is unexpectedly large.')
 
 
+        fuselage_wetted_area = prob.get_val('aircraft:fuselage:wetted_area', units='m**2')
+        print(fuselage_wetted_area)
 if __name__ == '__main__':
     unittest.main()

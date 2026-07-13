@@ -88,7 +88,7 @@ aircraft:fuselage:num_fuselages,1,unitless
 aircraft:fuselage:passenger_compartment_length,0,ft
 aircraft:fuselage:planform_area,0.2954,ft**2
 aircraft:fuselage:wetted_area_scaler,1.0,unitless
-aircraft:fuselage:wetted_area,904.0,inch**2
+aircraft:fuselage:wetted_area,0.58, m**2
 aircraft:horizontal_tail:area,0.15642,m**2
 aircraft:horizontal_tail:aspect_ratio,3.0,unitless
 aircraft:horizontal_tail:mass_scaler,0.0,unitless
@@ -167,7 +167,7 @@ settings:equations_of_motion,ENERGY_STATE
 settings:aerodynamics_method,FLOPS
 settings:mass_method,FLOPS
 settings:verbosity, 3
-aircraft:fuselage:wetted_area,0.6,m**2
+aircraft:fuselage:wetted_area,904.0,inch**2
 aircraft:fuselage:bulkhead_materials,[Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Ply,Ply,Ply,Ply,Ply,Ply],unitless
 aircraft:fuselage:bulkhead_thickness,[0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.25],inch
 aircraft:fuselage:number_of_spars,0.5,unitless
