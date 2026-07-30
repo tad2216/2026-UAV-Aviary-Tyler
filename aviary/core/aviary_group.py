@@ -970,8 +970,11 @@ class AviaryGroup(om.Group):
         else:
             self.add_constraint(
                 Mission.Constraints.MASS_RESIDUAL,
-                equals=0.0,
-                ref=1,
+                lower=1e-6,
+                upper=1e-6,
+
+
+                ref=1.0,
             )
 
         # If a target distance (or time) has been specified for this phase distance (or time) is
@@ -1550,9 +1553,9 @@ class AviaryGroup(om.Group):
                 #                         ('actual_mass', Mission.GROSS_MASS),
                 #                     ],
                 #                     promotes_outputs=['gtow_resid'],
-                
+
                 #                 )
-                
+
                 # self.add_constraint('gtow_constraint.gtow_resid', lower=0.004, upper=0.004, ref=100, units='kg')
                 self.add_subsystem(
                     'gtow_constraint',

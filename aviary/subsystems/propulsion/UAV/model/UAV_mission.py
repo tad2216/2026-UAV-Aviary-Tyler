@@ -132,6 +132,20 @@ class UAVPropMission(om.Group):
         )
         self.connect(Dynamic.Vehicle.Propulsion.RPM, 'rpm_balance.rpm_motor')
 
+        self.add_subsystem(
+            'power_balance',
+            om.ExecComp(
+                'power_defect = shaft_power - prop_power',
+                power_defect={'val': np.zeros(nn), 'units': 'W'},
+                prop_power={'val': np.zeros(nn), 'units': 'W'},
+                shaft_power={'val': np.zeros(nn), 'units': 'W'},
+                has_diag_partials=True,
+            ),
+        )
+        self.connect('motor.shaft_power', 'power_balance.shaft_power')
+        self.connect(Dynamic.Vehicle.Propulsion.PROP_POWER, 'power_balance.prop_power')
+
+
 
 
 
@@ -180,6 +194,7 @@ class UAVPropMission(om.Group):
         )
 
 
+
         self.connect('battery.voltage_out', 'electric_power.v_batt')
         self.connect('battery.voltage_out', 'esc.voltage_in')
         self.connect('esc.voltage_out', 'motor.voltage_in')
@@ -189,8 +204,10 @@ class UAVPropMission(om.Group):
               # Force commanded cruise RPM to match motor-computed RPM.
         self.add_constraint('rpm_balance.rpm_defect', upper=0.004, lower=-0.004, ref = 4000, units='rpm')
 
+
         """for min_energy_example this should be commented out, but for cruise example it should be active"""
-        # self.add_constraint('energy_constraint', lower=0.0, indices=[-1], ref=100, units='W*h')
+        self.add_constraint('energy_constraint', lower=0.0, indices=[-1], ref=100, units='W*h')
+        self.add_constraint('power_balance.power_defect', lower=-1.0, upper=1.0, ref=200.0, units='W')
 
 
 

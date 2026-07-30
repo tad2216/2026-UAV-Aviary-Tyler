@@ -181,6 +181,7 @@ class Motor(om.ExplicitComponent):
         # (no bound here: RPM is derated via load_factor instead; an output upper= is inert on an explicit comp anyway)
         ################ TODO Alex #####################
         self.add_output('power', val=np.zeros(nn), units='W')
+        self.add_output('shaft_power', val=np.zeros(nn), units='W')
 
         ar=np.arange(nn)
 
@@ -207,6 +208,17 @@ class Motor(om.ExplicitComponent):
             [Aircraft.Engine.Motor.RESISTANCE, Aircraft.Engine.Motor.IDLE_CURRENT]
         )
 
+        self.declare_partials(
+            'shaft_power',
+            ['voltage_in', 'current'],
+            rows=ar, cols=ar
+        )
+
+        self.declare_partials(
+            'shaft_power',
+            [Aircraft.Engine.Motor.RESISTANCE, Aircraft.Engine.Motor.IDLE_CURRENT]
+        )
+
 
 
 
@@ -218,6 +230,7 @@ class Motor(om.ExplicitComponent):
         voltage_prop = inputs['voltage_in'] - inputs['current'] * R
         outputs[Dynamic.Vehicle.Propulsion.RPM] = lf * kv * voltage_prop
         outputs['power'] = -inputs['current']**2 * R - inputs[Aircraft.Engine.Motor.IDLE_CURRENT] * voltage_prop
+        outputs['shaft_power'] = voltage_prop * (inputs['current']-inputs[Aircraft.Engine.Motor.IDLE_CURRENT])
 
 
     def compute_partials(self, inputs, partials):
@@ -229,6 +242,9 @@ class Motor(om.ExplicitComponent):
         dvoltage_prop_dvoltage_in = 1
         dvoltage_prop_dcurrent = -R
         dvoltage_prop_dresistance = -inputs['current']
+        I = inputs['current']
+        IO = inputs[Aircraft.Engine.Motor.IDLE_CURRENT]
+
 
         partials[Dynamic.Vehicle.Propulsion.RPM, 'voltage_in'] = lf * inputs[Aircraft.Engine.Motor.KV] * dvoltage_prop_dvoltage_in
         partials[Dynamic.Vehicle.Propulsion.RPM, 'current'] = lf * inputs[Aircraft.Engine.Motor.KV] * dvoltage_prop_dcurrent
@@ -239,6 +255,11 @@ class Motor(om.ExplicitComponent):
         partials['power', 'current'] = -2 * inputs['current'] * R - inputs[Aircraft.Engine.Motor.IDLE_CURRENT] * dvoltage_prop_dcurrent
         partials['power', Aircraft.Engine.Motor.RESISTANCE] = -inputs['current']**2 - inputs[Aircraft.Engine.Motor.IDLE_CURRENT] * dvoltage_prop_dresistance
         partials['power', Aircraft.Engine.Motor.IDLE_CURRENT] = -voltage_prop
+
+        partials['shaft_power', 'voltage_in'] = (I - IO) * dvoltage_prop_dvoltage_in
+        partials['shaft_power', 'current'] = voltage_prop + (I - IO) * dvoltage_prop_dcurrent
+        partials['shaft_power', Aircraft.Engine.Motor.RESISTANCE] = (I-IO) * dvoltage_prop_dresistance
+        partials['shaft_power', Aircraft.Engine.Motor.IDLE_CURRENT] = -voltage_prop
 
 
 

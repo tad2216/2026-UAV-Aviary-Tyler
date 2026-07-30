@@ -33,7 +33,7 @@ def CruiseExample():
             'order': 3,
             'mach_optimize': True,
 
-            'mach_initial': (0.0538, 'unitless'),
+            'mach_initial': (0.08, 'unitless'),
 
             'mach_bounds': ((0.05, 0.3), 'unitless'),
             # 'mach_ref': (0.05, 'unitless'),
@@ -46,7 +46,7 @@ def CruiseExample():
             'altitude_optimize': True,
             'altitude_initial': (200.0, 'ft'),
             'altitude_bounds': ((50,400), 'ft'),
-            # 'altitude_final': (200.0, 'ft'),
+            'altitude_final': (200.0, 'ft'),
             'distance_initial': (0.0, 'm'),
 
             'distance_ref': (1000.0, 'm'),
@@ -84,9 +84,9 @@ def CruiseExample():
 
     """Objective: Minimize energy consumption during cruise flight. This is done by adding an objective to the cruise phase that minimizes the energy constraint at the final time step. The energy constraint is defined as the integral of the power required to maintain level flight over the duration of the cruise phase. By minimizing this objective, we can find the optimal flight profile that minimizes energy consumption while still meeting all other constraints and requirements."""
     cruise_phase = prob.model.traj.phases.cruise
-    cruise_phase.add_objective('rc_electric.energy_constraint', loc='final', ref = -100, units='W*hr')
+    cruise_phase.add_objective('energy_used', loc='final', ref = 10, units='W*h')
 
-    prob.add_driver('IPOPT', use_coloring=False, max_iter=15)
+    prob.add_driver('IPOPT', use_coloring=False, max_iter=1000)
 
     prob.driver.opt_settings['print_level'] = 5
     prob.driver.opt_settings['mu_strategy'] = 'monotone'
