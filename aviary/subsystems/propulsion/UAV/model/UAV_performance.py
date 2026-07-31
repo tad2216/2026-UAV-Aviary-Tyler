@@ -24,18 +24,22 @@ class Throttle(om.ExplicitComponent):
         nn = self.options['num_nodes']
         add_aviary_input(self, Dynamic.Vehicle.Propulsion.THROTTLE, shape=(nn), units='unitless')
 
+        self.add_input('current_slack', val=np.zeros(nn), units='A')
+
         self.add_output(Dynamic.Vehicle.Propulsion.CURRENT, shape=(nn), units='A')
 
     def setup_partials(self):
         nn = self.options['num_nodes']
         max_current = np.asarray(self.options[Aircraft.Engine.Motor.MAX_CONT_CURRENT][0]).item()
         self.declare_partials(Dynamic.Vehicle.Propulsion.CURRENT, Dynamic.Vehicle.Propulsion.THROTTLE, val=max_current, rows=np.arange(nn), cols=np.arange(nn))
+        self.declare_partials(Dynamic.Vehicle.Propulsion.CURRENT, 'current_slack', val=1.0, rows=np.arange(nn), cols=np.arange(nn))
 
 
     def compute(self, inputs, outputs):
         throttle = inputs[Dynamic.Vehicle.Propulsion.THROTTLE]
+        current_slack = inputs['current_slack']
         max_current = np.asarray(self.options[Aircraft.Engine.Motor.MAX_CONT_CURRENT][0]).item()
-        outputs[Dynamic.Vehicle.Propulsion.CURRENT] = throttle * max_current
+        outputs[Dynamic.Vehicle.Propulsion.CURRENT] = throttle * max_current + current_slack
 
 
 

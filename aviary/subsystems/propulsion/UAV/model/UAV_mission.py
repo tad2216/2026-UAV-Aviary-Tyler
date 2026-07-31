@@ -39,6 +39,7 @@ class UAVPropMission(om.Group):
             Throttle(num_nodes=nn),
             promotes_inputs=[
                 Dynamic.Vehicle.Propulsion.THROTTLE,
+                'current_slack',
             ],
 
             promotes_outputs = [
@@ -212,3 +213,4 @@ class UAVPropMission(om.Group):
 
 
         self.options['auto_order'] = True
+4

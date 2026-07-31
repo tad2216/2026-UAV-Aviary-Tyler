@@ -160,10 +160,20 @@ class UAVBuilder(EngineModel):
             'targets': 'rpm_slack',
             'units': 'rpm',
             'opt': True,
-            'lower': 1800,
+            'lower': 200,
             'upper': 10800,
             'ref': 10800,
         },
+
+        'current_slack': {
+            'targets': 'current_slack',
+            'units': 'A',
+            'opt': True,
+            'lower': -99.0,
+            'upper': 5,
+            'ref': 100.0,
+        },
+
         }
 
         # Solver mode computes current/current_max internally in UAVPropMission.

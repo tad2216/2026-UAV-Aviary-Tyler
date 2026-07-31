@@ -111,14 +111,22 @@ def min_energy_example():
 
     # prob.set_val('traj.cruise.states:mass', 4.1, units='kg')
 
-    prob.set_val('traj.cruise.controls:rpm_slack', 1800.0, units='rpm')
-    prob.set_val('traj.cruise.controls:throttle', 0.5)
+    prob.set_val('traj.cruise.controls:rpm_slack', 3600.0, units='rpm')
+    prob.set_val('traj.cruise.controls:current_slack', -70.0, units='A')
+    prob.set_val('traj.cruise.controls:throttle',0.65)
     prob.set_val('traj.cruise.controls:alpha', 1, units='deg')
 
     number = prob.aviary_inputs.get_val(Aircraft.Wing.WETTED_AREA, units='m**2')
     print('Wetted Area:', number)
 
+
+
+    """Debugging stuff"""
     prob.run_aviary_problem(run_driver=True)
+
+    """Debugging stuff"""
+
+
 
 
     print('fuselage kg:', prob.get_val('aircraft:fuselage:mass', units='kg'))   # want ~1.8, NOT 6.6

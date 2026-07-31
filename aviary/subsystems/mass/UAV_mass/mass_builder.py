@@ -37,9 +37,9 @@ class MassBuilder(SubsystemBuilder):
             },
             Aircraft.Wing.ROOT_CHORD: {
                 'units': 'm',
-                'lower': 0.1,
-                'upper': 1.0,
-                'val': 0.5,
+                'lower': 0.2,
+                'upper': 0.4,
+                'val': 0.35,
             },
             # Aircraft.Fuselage.WETTED_AREA: {
             #     'units': 'm**2',
