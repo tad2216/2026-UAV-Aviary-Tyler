@@ -23,7 +23,7 @@ aircraft:crew_and_payload:wing_cargo,0.0,lbm
 aircraft:design:base_area,0.0,ft**2
 aircraft:design:cruise_mach,0.04,unitless
 aircraft:design:empty_mass_margin_scaler,0.0,unitless
-aircraft:design:gross_mass, 15.434,lbm
+aircraft:design:gross_mass, 10.60870788,lbm
 aircraft:design:lift_dependent_drag_coeff_factor,0.909839381134961,unitless
 mission:reserve_fuel_mass_additional,0.0,lbm
 mission:reserve_fuel_margin,0.0,unitless
@@ -51,7 +51,7 @@ aircraft:engine:reference_sls_thrust,10,lbf
 aircraft:engine:scale_factor,1.0,unitless
 aircraft:engine:scale_mass,False,unitless
 aircraft:engine:scale_performance,True,unitless
-aircraft:engine:scaled_sls_thrust,0,lbf
+aircraft:engine:scaled_sls_thrust,3.4,lbf
 aircraft:engine:subsonic_fuel_flow_scaler,1.,unitless
 aircraft:engine:supersonic_fuel_flow_scaler,1.,unitless
 aircraft:engine:thrust_reversers_mass_scaler,0.0,unitless
@@ -81,7 +81,7 @@ aircraft:fuselage:num_fuselages,1,unitless
 aircraft:fuselage:passenger_compartment_length,0,m
 aircraft:fuselage:planform_area,0.2954,ft**2
 aircraft:fuselage:wetted_area_scaler,1.0,unitless
-aircraft:fuselage:wetted_area,0.244,m**2
+aircraft:fuselage:wetted_area,0.6,m**2
 aircraft:horizontal_tail:area,0.244,m**2
 aircraft:horizontal_tail:aspect_ratio,2.625,unitless
 aircraft:horizontal_tail:mass_scaler,1.0,unitless
@@ -91,7 +91,7 @@ aircraft:horizontal_tail:vertical_tail_fraction,0.0,unitless
 aircraft:horizontal_tail:wetted_area_scaler,1.0,unitless
 aircraft:horizontal_tail:wetted_area,0.352,m**2
 aircraft:hydraulics:mass_scaler,0.0,unitless
-aircraft:hydraulics:system_pressure,0,psi
+aircraft:hydraulics:system_pressure,3000, #should result in 1 and not effect the UAV calc so leave at 3000
 aircraft:instruments:mass_scaler,0.0,unitless
 aircraft:landing_gear:main_gear_mass_scaler,0.0,unitless
 aircraft:landing_gear:main_gear_oleo_length,0,inch
@@ -163,7 +163,6 @@ settings:equations_of_motion,ENERGY_STATE
 settings:aerodynamics_method,FLOPS
 settings:mass_method,FLOPS
 settings:verbosity, 3
-aircraft:fuselage:wetted_area,0.6,m**2
 aircraft:fuselage:bulkhead_materials,[Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Balsa,Ply,Ply,Ply,Ply,Ply,Ply],unitless
 aircraft:fuselage:bulkhead_thickness,[0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.003175,0.00635],m
 aircraft:fuselage:number_of_spars,0.5,unitless
@@ -189,7 +188,7 @@ aircraft:horizontal_tail:rib_materials,[Balsa],unitless
 aircraft:horizontal_tail:airfoil_path,subsystems/mass/UAV_mass/utils/n0012-il.csv,unitless
 aircraft:horizontal_tail:airfoil_path,subsystems/mass/UAV_mass/utils/n0012-il.csv,unitless
 aircraft:horizontal_tail:glue_factor,0.01,unitless
-aircraft:horizontal_tail:misc_mass,2.5,lbm
+aircraft:horizontal_tail:misc_mass,0.05,kg
 aircraft:horizontal_tail:number_of_ribs,14,unitless
 aircraft:horizontal_tail:number_of_spars,2,unitless
 aircraft:horizontal_tail:number_of_stringers,10,unitless
@@ -207,13 +206,13 @@ aircraft:horizontal_tail:skin_density,20.0,g/m**2
 aircraft:horizontal_tail:stringer_density,2.2,lbm/ft**3
 aircraft:horizontal_tail:stringer_thickness,0.1,inch
 aircraft:vertical_tail:root_chord,0.3048,m
-aircraft:vertical_tail:span,0.8,m
+aircraft:vertical_tail:span,0.3,m
 aircraft:vertical_tail:rib_materials,[Balsa],unitless
 aircraft:vertical_tail:airfoil_path,../../../mass/UAV_mass/utils/n0012-il.csv,unitless
 aircraft:vertical_tail:airfoil_path,aviary/examples/external_subsystems/dbf_based_mass/n0012-il.csv,unitless
 aircraft:vertical_tail:airfoil_path,subsystems/mass/UAV_mass/utils/n0012-il.csv,unitless
 aircraft:vertical_tail:glue_factor,0.01,unitless
-aircraft:vertical_tail:misc_mass,2.5,lbm
+aircraft:vertical_tail:misc_mass,0.05,kg
 aircraft:vertical_tail:number_of_ribs,12,unitless
 aircraft:vertical_tail:number_of_spars,2,unitless
 aircraft:vertical_tail:number_of_stringers,8,unitless

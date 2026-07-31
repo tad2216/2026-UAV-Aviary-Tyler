@@ -202,12 +202,12 @@ class UAVPropMission(om.Group):
 
         """Constraints"""
               # Force commanded cruise RPM to match motor-computed RPM.
-        self.add_constraint('rpm_balance.rpm_defect', upper=0.004, lower=-0.004, ref = 4000, units='rpm')
+        self.add_constraint('rpm_balance.rpm_defect', upper=1.0, lower=-1.0, ref = 100, units='rpm')
 
 
         """for min_energy_example this should be commented out, but for cruise example it should be active"""
         self.add_constraint('energy_constraint', lower=0.0, indices=[-1], ref=100, units='W*h')
-        self.add_constraint('power_balance.power_defect', lower=-1.0, upper=1.0, ref=200.0, units='W')
+        self.add_constraint('power_balance.power_defect', lower=-1.0, upper=1.0, ref=100.0, units='W')
 
 
 

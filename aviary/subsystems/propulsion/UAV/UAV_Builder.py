@@ -53,12 +53,12 @@ class UAVBuilder(EngineModel):
                 'upper': 1.0,
                 # 'val': 100,
             },
-            Aircraft.Engine.Motor.IDLE_CURRENT: {
-                'units': 'A',
-                'lower': 0.91,
-                'upper': 3.6, #TODO: this placeholder can be varied
-                # 'val': 2.2,
-            },
+            # Aircraft.Engine.Motor.IDLE_CURRENT: {
+            #     'units': 'A',
+            #     'lower': 0.91,
+            #     'upper': 3.6, #TODO: this placeholder can be varied
+            #     # 'val': 2.2,
+            # },
 
 
             Aircraft.Engine.Motor.MASS: {
@@ -170,7 +170,7 @@ class UAVBuilder(EngineModel):
         # Declaring them as Dymos controls creates duplicate connections.
         return controls
 
-    def needs_mission_solver(self, aviary_inputs, subsystem_options):
+    def needs_mission_solver(self, aviary_inputs=None, user_options=None, subsystem_options=None, **kwargs):
         return False
 
 
