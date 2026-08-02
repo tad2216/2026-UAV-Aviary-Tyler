@@ -84,6 +84,9 @@ def min_energy_example():
 
     """Objective: Minimize energy consumption during cruise flight. This is done by adding an objective to the cruise phase that minimizes the energy constraint at the final time step. The energy constraint is defined as the integral of the power required to maintain level flight over the duration of the cruise phase. By minimizing this objective, we can find the optimal flight profile that minimizes energy consumption while still meeting all other constraints and requirements."""
     cruise_phase = prob.model.traj.phases.cruise
+    # The thrust and lift balances determine both values at repeated segment boundaries.
+    cruise_phase.set_control_options('throttle', continuity=False, rate_continuity=False)
+    cruise_phase.set_control_options('alpha', continuity=False, rate_continuity=False)
     cruise_phase.add_objective('energy_used', loc='final', ref = 10, units='W*h')
     cruise_phase.add_path_constraint('lift_coefficient', lower=0.0, upper=1.2)
     cruise_phase.add_path_constraint('thrust_net_total', lower=0.0, units='lbf')
@@ -111,20 +114,26 @@ def min_energy_example():
 
     # prob.set_val('traj.cruise.states:mass', 4.1, units='kg')
 
-    prob.set_val('traj.cruise.controls:rpm_slack', 3600.0, units='rpm')
-    prob.set_val('traj.cruise.controls:current_slack', -70.0, units='A')
-    prob.set_val('traj.cruise.controls:throttle',0.65)
+
+    # Current and shaft RPM are initialized and solved by UAVPropMission.motor_prop_balance.
+    # prob.set_val('traj.cruise.controls:rev_per_sec_slack', 88.0, units='rev/s')
+    # prob.set_val('traj.cruise.controls:current_slack', -70.0, units='A')
+    prob.set_val('traj.cruise.controls:throttle',0.85)
     prob.set_val('traj.cruise.controls:alpha', 1, units='deg')
+
 
     number = prob.aviary_inputs.get_val(Aircraft.Wing.WETTED_AREA, units='m**2')
     print('Wetted Area:', number)
 
-
+    print('throttle', prob.get_val('traj.cruise.controls:throttle'))
 
     """Debugging stuff"""
     prob.run_aviary_problem(run_driver=True)
 
     """Debugging stuff"""
+
+    prob.driver.scaling_report(outfile='scaling.html', show_browser=False)
+
 
 
 

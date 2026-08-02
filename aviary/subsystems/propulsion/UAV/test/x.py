@@ -14,7 +14,7 @@ model = prob.model
 model.add_subsystem('atm', Atmosphere(num_nodes=1), promotes=['*'])
 model.add_subsystem('rc_engine', UAVPropMission(num_nodes=1), promotes=['*'])
 
-model.connect('rotations_per_minute', 'rpm_slack')
+model.connect('rotations_per_minute', 'rev_per_sec_slack')
 model.set_input_defaults(Dynamic.Mission.VELOCITY, units='mi/h')
 
 prob.setup()
@@ -121,6 +121,3 @@ plt.show()
 plt
 
 print('done')
-
-
-

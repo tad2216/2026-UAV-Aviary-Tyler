@@ -155,33 +155,32 @@ class UAVBuilder(EngineModel):
         controls = {
 
 
-        #Rpm slack variable the optimizer chooses to keep the propeller RPM within the bounds of the training data. The motor RPM is forced to match this value at the optimum.
-        'rpm_slack': {
-            'targets': 'rpm_slack',
-            'units': 'rpm',
-            'opt': True,
-            'lower': 200,
-            'upper': 10800,
-            'ref': 10800,
-        },
+        # Current and RPM are now solved inside UAVPropMission.
+        # 'rev_per_sec_slack': {
+        #     'targets': 'rev_per_sec_slack',
+        #     'units': 'rev/s',
+        #     'opt': True,
+        #     'lower': 3.3,
+        #     'upper': 180.0,
+        #     'ref': 60.0,
+        # },
 
-        'current_slack': {
-            'targets': 'current_slack',
-            'units': 'A',
-            'opt': True,
-            'lower': -99.0,
-            'upper': 5,
-            'ref': 100.0,
-        },
+        # 'current_slack': {
+        #     'targets': 'current_slack',
+        #     'units': 'A',
+        #     'opt': True,
+        #     'lower': -99.0,
+        #     'upper': 5,
+        #     'ref': 80.0,
+        # },
 
         }
 
-        # Solver mode computes current/current_max internally in UAVPropMission.
-        # Declaring them as Dymos controls creates duplicate connections.
         return controls
 
     def needs_mission_solver(self, aviary_inputs=None, user_options=None, subsystem_options=None, **kwargs):
-        return False
+        # return False
+        return True
 
 
     def get_mass_names(self, aviary_inputs=None, user_options=None, subsystem_options=None, phase_info=None):

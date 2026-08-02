@@ -54,7 +54,7 @@ class TestUAVMission(unittest.TestCase):
         rpm = prob.get_val(Dynamic.Vehicle.Propulsion.RPM, units='rev/s')
         rpm_constraint = prob.get_val('prop.rpm_constraint', units='rev/s')
         current_flow = prob.get_val(Dynamic.Vehicle.Propulsion.CURRENT, units='A')
-        rpm_defect = prob.get_val('rpm_balance.rpm_defect', units='rev/s')
+        rev_per_sec_defect = prob.get_val('rev_per_sec_balance.rev_per_sec_defect', units='rev/s')
         expected = battery_power + esc_power + motor_power - prop_power
 
         assert_near_equal(current_flow, np.full(nn, 30.0), tolerance=1e-10)
@@ -66,7 +66,7 @@ class TestUAVMission(unittest.TestCase):
 
         assert_near_equal(rpm, np.full(nn, 23.40146028), tolerance=5e-4)
         assert_near_equal(rpm_constraint, np.full(nn, -65.0), tolerance=5e-4)
-        assert_near_equal(rpm_defect, np.full(nn, 36.59853972), tolerance=5e-5)
+        assert_near_equal(rev_per_sec_defect, np.full(nn, 36.59853972), tolerance=5e-5)
 
 
         partial_data = prob.check_partials(

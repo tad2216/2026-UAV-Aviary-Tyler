@@ -77,10 +77,11 @@ def CruiseExample():
     energy_guess = np.linspace(0.0, 16.0, n_state).reshape(-1, 1)
     prob.set_val('traj.cruise.states:energy_used', energy_guess, units='W*h')
 
-    prob.set_val('traj.cruise.controls:rpm_slack', 24, units='rev/s')
+    # Shaft RPM is initialized and solved by UAVPropMission.motor_prop_balance.
+    # prob.set_val('traj.cruise.controls:rev_per_sec_slack', 24, units='rev/s')
     prob.set_val('traj.cruise.controls:throttle', 0.35)
 
-    prob.set_val('traj.cruise.controls:rpm_slack', 4000.0, units='rpm')
+    # prob.set_val('traj.cruise.controls:rev_per_sec_slack', 4000.0, units='rpm')
     prob.set_val('traj.cruise.controls:throttle', 0.3)
 
     number = prob.aviary_inputs.get_val(Aircraft.Wing.WETTED_AREA, units='m**2')

@@ -31,21 +31,37 @@ class UAVPropMission(om.Group):
 
 
 
-        rpm_in = [(Dynamic.Vehicle.Propulsion.RPM, 'rpm_slack')]
-        self.set_input_defaults('rpm_slack', val=np.ones(nn) * 60.0, units='rev/s')
+        rpm_in = [(Dynamic.Vehicle.Propulsion.RPM, 'rev_per_sec_slack')]
+        self.set_input_defaults('rev_per_sec_slack', val=np.ones(nn) * 60.0, units='rev/s')
+
+        # Dymos chooses throttle; motor_prop_balance solves current and shaft RPM so the
+        # motor's electrical prediction matches the direct-drive propeller load.
+        # self.add_subsystem(
+        #     'throttle',
+        #     Throttle(num_nodes=nn),
+        #     promotes_inputs=[
+        #         Dynamic.Vehicle.Propulsion.THROTTLE,
+        #         'current_slack',
+        #     ],
+        #     promotes_outputs=[Dynamic.Vehicle.Propulsion.CURRENT],
+        # )
+
 
         self.add_subsystem(
-            'throttle',
-            Throttle(num_nodes=nn),
+            'esc_current',
+            om.ExecComp(
+                'battery_current = throttle * motor_current',
+                battery_current={'val': np.zeros(nn), 'units': 'A'},
+                throttle={'val': np.zeros(nn), 'units': 'unitless'},
+                motor_current={'val': np.zeros(nn), 'units': 'A'},
+                has_diag_partials=True,
+            ),
             promotes_inputs=[
-                Dynamic.Vehicle.Propulsion.THROTTLE,
-                'current_slack',
+                ('throttle', Dynamic.Vehicle.Propulsion.THROTTLE),
+                ('motor_current', Dynamic.Vehicle.Propulsion.CURRENT),
             ],
-
-            promotes_outputs = [
-                Dynamic.Vehicle.Propulsion.CURRENT,]
+            promotes_outputs=['battery_current'],
         )
-
 
 
         self.add_subsystem(
@@ -54,7 +70,8 @@ class UAVPropMission(om.Group):
             promotes_inputs=[
                 Aircraft.Battery.VOLTAGE,
                 Aircraft.Battery.RESISTANCE,
-                Dynamic.Vehicle.Propulsion.CURRENT,
+                # Dynamic.Vehicle.Propulsion.CURRENT,
+                (Dynamic.Vehicle.Propulsion.CURRENT, 'battery_current'),
             ]
         )
 
@@ -75,7 +92,7 @@ class UAVPropMission(om.Group):
                 Aircraft.Engine.Motor.IDLE_CURRENT,
                 Aircraft.Engine.Motor.RESISTANCE,
                 Aircraft.Engine.Motor.KV,
-                Dynamic.Vehicle.Propulsion.CURRENT,
+                # Dynamic.Vehicle.Propulsion.CURRENT,
                 ],
             promotes_outputs=[
                 Dynamic.Vehicle.Propulsion.RPM,
@@ -121,17 +138,17 @@ class UAVPropMission(om.Group):
 
 
         self.add_subsystem(
-            'rpm_balance',
+            'rev_per_sec_balance',
             om.ExecComp(
-                'rpm_defect = rpm_slack - rpm_motor',
-                rpm_defect={'val': np.zeros(nn), 'units': 'rev/s'},
-                rpm_slack={'val': np.zeros(nn), 'units': 'rev/s'},
-                rpm_motor={'val': np.zeros(nn), 'units': 'rev/s'},
+                'rev_per_sec_defect = rev_per_sec_slack - rev_per_sec_motor',
+                rev_per_sec_defect={'val': np.zeros(nn), 'units': 'rev/s'},
+                rev_per_sec_slack={'val': np.zeros(nn), 'units': 'rev/s'},
+                rev_per_sec_motor={'val': np.zeros(nn), 'units': 'rev/s'},
                 has_diag_partials=True,
             ),
-            promotes_inputs=['rpm_slack'],
+            promotes_inputs=['rev_per_sec_slack'],
         )
-        self.connect(Dynamic.Vehicle.Propulsion.RPM, 'rpm_balance.rpm_motor')
+        self.connect(Dynamic.Vehicle.Propulsion.RPM, 'rev_per_sec_balance.rev_per_sec_motor')
 
         self.add_subsystem(
             'power_balance',
@@ -145,6 +162,42 @@ class UAVPropMission(om.Group):
         )
         self.connect('motor.shaft_power', 'power_balance.shaft_power')
         self.connect(Dynamic.Vehicle.Propulsion.PROP_POWER, 'power_balance.prop_power')
+
+        motor_prop_balance = om.BalanceComp()
+        motor_prop_balance.add_balance(
+            Dynamic.Vehicle.Propulsion.CURRENT,
+            val=np.full(nn, 15.0),
+            units='A',
+            lower=0.0,
+            upper=100.0,
+            lhs_name='power_defect',
+            rhs_val=np.zeros(nn),
+            eq_units='W',
+            normalize=False,
+            res_ref=200.0,
+        )
+        motor_prop_balance.add_balance(
+            'rev_per_sec_slack',
+            val=np.full(nn, 88.0),
+            units='rev/s',
+            lower=3.3,
+            upper=180.0,
+            lhs_name='rev_per_sec_defect',
+            rhs_val=np.zeros(nn),
+            eq_units='rev/s',
+            normalize=False,
+            res_ref=1.0,
+        )
+        self.add_subsystem(
+            'motor_prop_balance',
+            motor_prop_balance,
+            promotes_outputs=[Dynamic.Vehicle.Propulsion.CURRENT, 'rev_per_sec_slack'],
+        )
+        self.connect('power_balance.power_defect', 'motor_prop_balance.power_defect')
+        self.connect(
+            'rev_per_sec_balance.rev_per_sec_defect',
+            'motor_prop_balance.rev_per_sec_defect',
+        )
 
 
 
@@ -166,7 +219,8 @@ class UAVPropMission(om.Group):
                 has_diag_partials=True,
             ),
             promotes_inputs=[
-                ('current', Dynamic.Vehicle.Propulsion.CURRENT),
+                # ('current', Dynamic.Vehicle.Propulsion.CURRENT),
+                ('current', 'battery_current'),
             ],
             promotes_outputs=[
                 ('p_elec', Dynamic.Vehicle.Propulsion.ELECTRIC_POWER_IN),
@@ -202,15 +256,26 @@ class UAVPropMission(om.Group):
         self.connect('esc.current_out', 'motor.current')
 
         """Constraints"""
-              # Force commanded cruise RPM to match motor-computed RPM.
-        self.add_constraint('rpm_balance.rpm_defect', upper=1.0, lower=-1.0, ref = 100, units='rpm')
+          # These defects are now driven to zero by motor_prop_balance.
+          # self.add_constraint(
+          #     'rev_per_sec_balance.rev_per_sec_defect',
+          #     upper=1.0,
+          #     lower=-1.0,
+          #     ref=1.0,
+          #     units='rev/s',
+          # )
 
 
         """for min_energy_example this should be commented out, but for cruise example it should be active"""
-        self.add_constraint('energy_constraint', lower=0.0, indices=[-1], ref=100, units='W*h')
-        self.add_constraint('power_balance.power_defect', lower=-1.0, upper=1.0, ref=100.0, units='W')
+        # self.add_constraint('energy_constraint', lower=0.0, indices=[-1], ref=100, units='W*h')
+        # self.add_constraint(
+        #     'power_balance.power_defect',
+        #     lower=-5.0,
+        #     upper=5.0,
+        #     ref=200.0,
+        #     units='W',
+        # )
 
 
 
         self.options['auto_order'] = True
-4

@@ -970,8 +970,7 @@ class AviaryGroup(om.Group):
         else:
             self.add_constraint(
                 Mission.Constraints.MASS_RESIDUAL,
-                lower=1e-6,
-                upper=1e-6,
+                equals=0.0,
 
 
                 ref=1.0,

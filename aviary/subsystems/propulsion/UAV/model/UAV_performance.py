@@ -136,7 +136,8 @@ class ElectronicSpeedController(om.ExplicitComponent):
         outputs['current_out'] = inputs[Dynamic.Vehicle.Propulsion.CURRENT] #* thr
         outputs['efficiency'] = np.where(thr >= transition, a * (1 - 1 / (1 + b*thr**c)), m* thr + ((a * (1 - 1 / (1 + b*transition**c)))-m*transition))
         outputs['voltage_out'] = inputs['voltage_in'] * inputs[Dynamic.Vehicle.Propulsion.THROTTLE] * outputs['efficiency']
-        outputs['power'] = (outputs['efficiency'] - 1) * inputs[Dynamic.Vehicle.Propulsion.CURRENT] * inputs['voltage_in']
+        # outputs['power'] = (outputs['efficiency'] - 1) * inputs[Dynamic.Vehicle.Propulsion.CURRENT] * inputs['voltage_in']
+        outputs['power'] = (outputs['efficiency'] - 1) * inputs[Dynamic.Vehicle.Propulsion.CURRENT] * inputs['voltage_in'] * thr
 
     def compute_partials(self, inputs, partials):
 
@@ -156,9 +157,11 @@ class ElectronicSpeedController(om.ExplicitComponent):
         partials['voltage_out', 'voltage_in'] = inputs[Dynamic.Vehicle.Propulsion.THROTTLE] * efficiency
         partials['voltage_out', Dynamic.Vehicle.Propulsion.THROTTLE] = inputs['voltage_in'] * (efficiency + inputs[Dynamic.Vehicle.Propulsion.THROTTLE] * partials['efficiency', Dynamic.Vehicle.Propulsion.THROTTLE])
 
-        partials['power', 'voltage_in'] = (efficiency - 1) * inputs[Dynamic.Vehicle.Propulsion.CURRENT]
-        partials['power', Dynamic.Vehicle.Propulsion.CURRENT] = (efficiency - 1) * inputs['voltage_in']
-        partials['power', Dynamic.Vehicle.Propulsion.THROTTLE] = inputs[Dynamic.Vehicle.Propulsion.CURRENT] * inputs['voltage_in'] * partials['efficiency', Dynamic.Vehicle.Propulsion.THROTTLE]
+        # Battery current is throttle * motor current because ESC efficiency is
+        # already applied to voltage_out.
+        partials['power', 'voltage_in'] = (efficiency - 1) * inputs[Dynamic.Vehicle.Propulsion.CURRENT] * t
+        partials['power', Dynamic.Vehicle.Propulsion.CURRENT] = (efficiency - 1) * inputs['voltage_in'] * t
+        partials['power', Dynamic.Vehicle.Propulsion.THROTTLE] = inputs[Dynamic.Vehicle.Propulsion.CURRENT] * inputs['voltage_in'] * ((efficiency - 1) + t * partials['efficiency', Dynamic.Vehicle.Propulsion.THROTTLE])
 
 
 class Motor(om.ExplicitComponent):
