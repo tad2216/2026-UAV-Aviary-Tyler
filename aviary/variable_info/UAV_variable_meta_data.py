@@ -910,6 +910,24 @@ av.add_meta_data(
     default_value=0.05,
 )
 
+av.add_meta_data(
+    Aircraft.Battery.C_RATE,
+    meta_data=ExtendedMetaData,
+    units='unitless',
+    desc='Continuous discharge C-rate of the battery pack (max discharge current = '
+    'C_RATE * capacity in amp-hours)',
+    default_value=25.0,
+)
+
+av.add_meta_data(
+    Aircraft.Battery.MAX_DISCHARGE_CURRENT,
+    meta_data=ExtendedMetaData,
+    units='A',
+    desc='Maximum continuous discharge current the battery pack can supply, '
+    'derived from its C-rate and energy capacity',
+    default_value=0.0,
+)
+
 # --- Motor ---
 av.add_meta_data(
     Aircraft.Engine.Motor.IDLE_CURRENT,

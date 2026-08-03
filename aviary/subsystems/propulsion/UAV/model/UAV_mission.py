@@ -199,6 +199,23 @@ class UAVPropMission(om.Group):
             'motor_prop_balance.rev_per_sec_defect',
         )
 
+        # Real batteries have a C-rate-limited max discharge current (see
+        # UAVPropPreMission.battery_discharge_limit_calc). Enforce it here so a small
+        # battery can't be run past its rated current.
+        self.add_subsystem(
+            'battery_current_limit',
+            om.ExecComp(
+                'current_margin = max_discharge_current - battery_current',
+                current_margin={'val': np.zeros(nn), 'units': 'A'},
+                max_discharge_current={'val': 0.0, 'units': 'A'},
+                battery_current={'val': np.zeros(nn), 'units': 'A'},
+            ),
+            promotes_inputs=[
+                ('max_discharge_current', Aircraft.Battery.MAX_DISCHARGE_CURRENT),
+                'battery_current',
+            ],
+        )
+
 
 
 
@@ -275,6 +292,14 @@ class UAVPropMission(om.Group):
         #     ref=200.0,
         #     units='W',
         # )
+
+        # Real batteries cannot discharge past their C-rate-limited current rating.
+        self.add_constraint(
+            'battery_current_limit.current_margin',
+            lower=0.0,
+            ref=10.0,
+            units='A',
+        )
 
 
 

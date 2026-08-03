@@ -20,7 +20,7 @@ class UAVPropPreMission(om.Group):
         add_aviary_option(self, Aircraft.Engine.Motor.MAX_CONT_CURRENT, units='A', val=100.0)  # max continuous current
         add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_SLOPE)    # m = KV_EQ_SLOPE
         add_aviary_option(self, Aircraft.Engine.Motor.KV_EQ_INT)      # b = KV_EQ_INT
-      
+
         self.options.declare(
             'aviary_options',
             types=AviaryValues,
@@ -37,8 +37,8 @@ class UAVPropPreMission(om.Group):
         # motor mass
 
         max_cont_current = self.options[Aircraft.Engine.Motor.MAX_CONT_CURRENT][0]
-        
-        
+
+
         self.add_subsystem(
             'energy_calc',
             om.ExecComp(
@@ -51,17 +51,38 @@ class UAVPropPreMission(om.Group):
             promotes_outputs=[('energy', Aircraft.Battery.ENERGY_CAPACITY)],
         )
 
+        # Real batteries have a max continuous discharge current tied to their C-rate
+        # and capacity (e.g. a "25C" pack can sustain 25x its amp-hour capacity).
+        # A small battery therefore cannot supply unlimited current just because the
+        # rest of the model doesn't otherwise penalize it.
+        self.add_subsystem(
+            'battery_discharge_limit_calc',
+            om.ExecComp(
+                'max_discharge_current = c_rate * energy_capacity / voltage_in',
+                max_discharge_current={'val': 0.0, 'units': 'A'},
+                c_rate={'val': 25.0, 'units': 'unitless'},
+                energy_capacity={'val': 0.0, 'units': 'W*h'},
+                voltage_in={'val': 0.0, 'units': 'V'},
+            ),
+            promotes_inputs=[
+                ('c_rate', Aircraft.Battery.C_RATE),
+                ('energy_capacity', Aircraft.Battery.ENERGY_CAPACITY),
+                ('voltage_in', Aircraft.Battery.VOLTAGE),
+            ],
+            promotes_outputs=[('max_discharge_current', Aircraft.Battery.MAX_DISCHARGE_CURRENT)],
+        )
+
         self.add_subsystem(
             'motor_resistance_calc',
             om.ExecComp(
-                'resistance = 0.0467 * idle_current ** -1.892', 
+                'resistance = 0.0467 * idle_current ** -1.892',
                 idle_current={'val': 0.0, 'units': 'A'},
                 resistance={'val': 0.0, 'units': 'ohm'}
             ),
             promotes_inputs=[('idle_current', Aircraft.Engine.Motor.IDLE_CURRENT)],
             promotes_outputs=[('resistance', Aircraft.Engine.Motor.RESISTANCE)]
         )
-        
+
         #TODO: Cite
         self.add_subsystem(
             'motor_kv_calc',
@@ -75,7 +96,7 @@ class UAVPropPreMission(om.Group):
                 b=self.options[Aircraft.Engine.Motor.KV_EQ_INT],
             ),
             promotes_inputs=[
-                
+
                 ('motor_mass', Aircraft.Engine.Motor.MASS),
             ],
             promotes_outputs=[('kv', Aircraft.Engine.Motor.KV)]
@@ -96,5 +117,6 @@ class UAVPropPreMission(om.Group):
 
 
         self.set_input_defaults(Aircraft.Battery.VOLTAGE, val=22.2, units='V')
-        
+        self.set_input_defaults(Aircraft.Battery.C_RATE, val=25.0, units='unitless')
+
         self.set_input_defaults(Aircraft.Engine.Motor.IDLE_CURRENT, val=2.2, units='A')

@@ -95,6 +95,10 @@ class UAVBuilder(EngineModel):
                 'val': 0.0,
                 'units': 'W*h',
             },
+            Aircraft.Battery.MAX_DISCHARGE_CURRENT: {
+                'val': 0.0,
+                'units': 'A',
+            },
             Aircraft.Battery.VOLTAGE: {
                 'val': 22.2,
                 'units': 'V',

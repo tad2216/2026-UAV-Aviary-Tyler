@@ -108,6 +108,9 @@ class Aircraft(AviaryAircraft):
     class Battery(AviaryAircraft.Battery):
         VOLTAGE = 'aircraft:battery:voltage'
         RESISTANCE = 'aircraft:battery:resistance'
+        # Continuous discharge C-rate: max_discharge_current = C_RATE * capacity_Ah.
+        C_RATE = 'aircraft:battery:c_rate'
+        MAX_DISCHARGE_CURRENT = 'aircraft:battery:max_discharge_current'
 
     class Engine(AviaryAircraft.Engine):
         class Motor(AviaryAircraft.Engine.Motor):
